@@ -15,20 +15,18 @@ FAKE = [
     "send id and bank details to proceed selected without resume urgent requirement",
     "payment upfront bitcoin limited slots click link verify account now",
 ]
-X_train = REAL + FAKE
-y_train = [0]*len(REAL) + [1]*len(FAKE)
+X = REAL + FAKE
+y = [0]*len(REAL) + [1]*len(FAKE)
 
-vect = CountVectorizer(stop_words="english").fit(X_train)
-clf  = MultinomialNB().fit(vect.transform(X_train), y_train)
+vect = CountVectorizer(stop_words="english").fit(X)
+clf  = MultinomialNB().fit(vect.transform(X), y)
 
-txt = st.text_area("Paste a job description (title + details)", height=220)
-if st.button("Predict"):
-    if not txt.strip():
-        st.warning("Please paste some text.")
-    else:
-        X = vect.transform([txt])
-        pred = clf.predict(X)[0]
-        proba = clf.predict_proba(X)[0][pred]
-        st.success(f"Prediction: **{'Fraudulent' if pred==1 else 'Real'}**")
-        st.write(f"Confidence: **{proba:.2%}**")
+txt = st.text_area("Paste a job description", height=200)
+if st.button("Predict") and txt.strip():
+    P = vect.transform([txt])
+    pred = clf.predict(P)[0]
+    proba = clf.predict_proba(P)[0][pred]
+    st.success(f"Prediction: **{'Fraudulent' if pred==1 else 'Real'}**")
+    st.write(f"Confidence: **{proba:.2%}**")
+
 
