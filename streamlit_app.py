@@ -1,30 +1,26 @@
 import streamlit as st
-import pickle
-import pandas as pd
+import joblib
 
-# Load your trained model
-model = pickle.load(open("model.pkl", "rb"))
+st.set_page_config(page_title="Fake Job Predictor", page_icon="🕵️")
+st.title("🕵️ Fake Job Posting Predictor")
 
-st.title("🧠 Fake Job Posting Predictor")
+@st.cache_resource
+def load_artifacts():
+    model = joblib.load("model.pkl")          # MultinomialNB
+    vect  = joblib.load("vectorizer.pkl")     # CountVectorizer
+    return model, vect
 
-st.write("Enter job details below to check if it's real or fake:")
+model, vect = load_artifacts()
 
-# Input fields
-title = st.text_input("Job Title")
-location = st.text_input("Location")
-company_profile = st.text_area("Company Profile")
-description = st.text_area("Job Description")
-requirements = st.text_area("Requirements")
+txt = st.text_area("Paste a job description (title + details)", height=220, placeholder="e.g., Customer Service Associate...")
 
 if st.button("Predict"):
-    # Convert inputs to a DataFrame (adjust based on your model)
-    input_data = pd.DataFrame([[title, location, company_profile, description, requirements]],
-                              columns=["title", "location", "company_profile", "description", "requirements"])
-    
-    # Get prediction
-    prediction = model.predict(input_data)
-    
-    if prediction[0] == 1:
-        st.error("⚠ This job posting seems *Fake*.")
+    if not txt.strip():
+        st.warning("Please paste some text.")
     else:
-        st.success("✅ This job posting seems *Real*.")
+        X = vect.transform([txt])
+        pred = model.predict(X)[0]
+        proba = model.predict_proba(X)[0][pred]
+        label = "Fraudulent" if pred == 1 else "Real"
+        st.success(f"Prediction: **{label}**")
+        st.write(f"Confidence: **{proba:.2%}**")
