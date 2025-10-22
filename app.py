@@ -5,6 +5,7 @@ from sklearn.naive_bayes import MultinomialNB
 st.set_page_config(page_title="Fake Job Predictor", page_icon="🕵️")
 st.title("🕵️ Fake Job Posting Predictor")
 
+# Tiny built-in training set (no external files)
 REAL = [
     "customer service associate handle inbound queries adhere attendance policy computer software",
     "onsite mechanical engineer cad experience benefits health insurance relocation paid",
@@ -21,12 +22,15 @@ y = [0]*len(REAL) + [1]*len(FAKE)
 vect = CountVectorizer(stop_words="english").fit(X)
 clf  = MultinomialNB().fit(vect.transform(X), y)
 
-txt = st.text_area("Paste a job description", height=200)
+txt = st.text_area("Paste a job description", height=220,
+                   placeholder="e.g., Customer Service Associate... attendance policy...")
+
 if st.button("Predict") and txt.strip():
     P = vect.transform([txt])
     pred = clf.predict(P)[0]
     proba = clf.predict_proba(P)[0][pred]
     st.success(f"Prediction: **{'Fraudulent' if pred==1 else 'Real'}**")
     st.write(f"Confidence: **{proba:.2%}**")
+
 
 
